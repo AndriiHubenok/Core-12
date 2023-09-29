@@ -1,67 +1,61 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class FizzBuzz {
-    private static List<String> result;
-    private static List<Integer> listOfNumbers;
-    static int num;
+    private volatile int cursor = 1;
+    private int amount = 15;
     public static void main(String[] args) {
-        listOfNumbers = new ArrayList<>();
-        int amount = 15;
-        result = new ArrayList<>();
-        for (int i = 1; i <= amount; i++) {
-            listOfNumbers.add(i);
-            result.add(Integer.toString(i));
-        }
-        Thread D = new Thread(() -> {
-            try {
-                number();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        D.start();
-    }
-
-    private static void fizz(int num) {
-        for(int i = 1; i <= listOfNumbers.size(); i++) {
-            if(i % 3 == 0 && !(i % 5 == 0)) {
-                result.set(i - 1, "fizz");
-            }
-        }
-    }
-
-    private static void buzz(int num) {
-        for(int i = 1; i <= listOfNumbers.size(); i++) {
-            if(i % 5 == 0 && !(i % 3 == 0)) {
-                result.set(i - 1, "buzz");
-            }
-        }
-    }
-
-    private static void fizzbuzz(int num) {
-        for(int i = 1; i <= listOfNumbers.size(); i++) {
-            if(i % 5 == 0 && i % 3 == 0) {
-                result.set(i - 1, "fizzbuzz");
-            }
-        }
-    }
-
-    private static void number() throws InterruptedException {
-        Thread A = new Thread(() -> fizz(num));
-        Thread B = new Thread(() -> buzz(num));
-        Thread C = new Thread(() -> fizzbuzz(num));
+        FizzBuzz test = new FizzBuzz();
+        Thread A = new Thread(() -> test.fizz());
+        Thread B = new Thread(() -> test.buzz());
+        Thread C = new Thread(() -> test.fizzbuzz());
+        Thread D = new Thread(() -> test.number());
         A.start();
         B.start();
         C.start();
-        for (int i = 0; i < listOfNumbers.size(); i++) {
-            if(i == listOfNumbers.size() - 1) {
-                System.out.println(result.get(i));
-                break;
+        D.start();
+    }
+
+    private void fizz() {
+        for(; cursor <= amount;) {
+            synchronized (this) {
+                if (cursor % 3 == 0 && !(cursor % 5 == 0) && cursor <= amount) {
+                    System.out.print("fizz, ");
+                    cursor++;
+                }
             }
-            System.out.print(result.get(i) + ", ");
+        }
+    }
+
+    private void buzz() {
+        for(; cursor <= amount;) {
+            synchronized (this) {
+                if (cursor % 5 == 0 && !(cursor % 3 == 0) && cursor <= amount) {
+                    System.out.print("buzz, ");
+                    cursor++;
+                }
+            }
+        }
+    }
+
+    private void fizzbuzz() {
+        for(; cursor <= amount;) {
+            synchronized (this) {
+                if (cursor % 3 == 0 && cursor % 5 == 0 && cursor <= amount) {
+                    System.out.print("fizzbuzz, ");
+                    cursor++;
+                }
+            }
+        }
+    }
+
+    private void number() {
+        for(; cursor <= amount;) {
+            synchronized (this) {
+                if (!(cursor % 3 == 0) && !(cursor % 5 == 0) && cursor <= amount) {
+                    System.out.print(cursor + ", ");
+                    cursor++;
+                }
+            }
         }
     }
 }
